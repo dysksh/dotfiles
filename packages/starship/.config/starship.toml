@@ -1,0 +1,10 @@
+[character]
+success_symbol = "🪼"
+error_symbol = "👾"
+
+[git_branch]
+symbol = "🌱"
+
+[git_status]
+modified = "modified:($count)"
+untracked = "untracked:($count)"

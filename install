@@ -1,0 +1,71 @@
+#!/bin/sh
+
+set -e
+log () {
+    message="$1"
+    echo  🫧 "$message"
+}
+
+if [ ! -f /opt/homebrew/bin/brew ]; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv)"') >> /Users/dysksh/.zprofile
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    exec $SHELL -l
+fi
+
+if [ ! -d ~/development/dotfiles ]; then
+    cd ~/development
+    git clone git@github.com:dysksh/dotfiles.git
+fi
+
+brew bundle -v --file=~/development/dotfiles/Brewfile
+
+if [ ! -d ~/.config ]; then
+    mkdir ~/.config
+fi
+
+stow -v -d ~/development/dotfiles/packages -t ~ zsh starship asdf
+
+# asdf
+for plugin in $(awk '{print $1}' ~/.tool-versions); do
+    if [ ! -d ~/.asdf/plugins/"$plugin" ]; then
+        log "Add plugin: $plugin"
+        asdf plugin-add "$plugin"
+    fi
+done
+
+is_runtime_version_changed () {
+    plugin="$1"
+    specified=$(grep "$plugin" ~/.tool-versions | awk '{$1=""; print $0}')
+    installd=$(asdf list "$plugin" 2>&1)
+
+    is_changed=0
+    for version in $specified; do
+        match=$(echo "$installd" | grep "$version")
+        [ -z "$match" ] && is_changed=1
+    done
+
+    [ "$is_changed" ]
+}
+
+for plugin in $(asdf plugin list); do
+    # is_version_changed=$(is_runtime_version_changed "$plugin")
+    if is_runtime_version_changed "$plugin"; then
+        log "Install runtime: $plugin"
+        asdf install "$plugin"
+    fi
+done
+
+# C++
+if [ ! -L /opt/homebrew/bin/g++ ]; then
+    ln -s /opt/homebrew/Cellar/gcc/13.1.0/bin/g++-13 /opt/homebrew/bin/g++
+fi
+if [ ! -L /opt/homebrew/bin/gcc ]; then
+    ln -s /opt/homebrew/Cellar/gcc/13.1.0/bin/gcc-13 /opt/homebrew/bin/gcc
+fi
+
+log "done"
+
+# source ~/.zshrc
+exec $SHELL -l
+
