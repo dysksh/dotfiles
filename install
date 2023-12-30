@@ -63,6 +63,16 @@ fi
 if [ ! -L /opt/homebrew/bin/gcc ]; then
     ln -s /opt/homebrew/Cellar/gcc/13.1.0/bin/gcc-13 /opt/homebrew/bin/gcc
 fi
+if [ ! -d /usr/local/include ]; then
+    sudo mkdir /usr/local/include
+fi
+if [ ! -d /usr/local/include/bits ]; then
+    sudo mkdir /usr/local/include/bits
+fi
+if [ ! -f /usr/local/include/bits/stdc++.h ]; then
+    sudo cp ~/development/dotfiles/stdc++.h /usr/local/include/bits/stdc++.h
+fi
+
 
 if [ ! -f ~/.vimrc ]; then
     cp ~/development/dotfiles/.vimrc ~/.vimrc
